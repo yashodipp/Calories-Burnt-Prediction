@@ -488,7 +488,7 @@ def prediction_page(df: pd.DataFrame, metadata: dict[str, Any]) -> None:
         recs = result["recommendations"]
 
         with right:
-            st.plotly_chart(make_gauge(prediction, "Predicted Calories Burned", max(float(df[TARGET].max()) * 1.1, 320)), width="stretch")
+            st.plotly_chart(make_gauge(prediction, "Predicted Calories Burned", max(float(df[TARGET].max()) * 1.1, 320)), use_container_width=True)
             st.metric("Confidence Score", f"{confidence:.1f}%", f"Ensemble spread: {uncertainty:.2f} kcal")
             st.progress(min(confidence / 100, 1.0))
 
@@ -504,7 +504,7 @@ def prediction_page(df: pd.DataFrame, metadata: dict[str, Any]) -> None:
                 )
             )
             fig.update_layout(height=170, margin=dict(l=20, r=20, t=40, b=20), paper_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
         with p2:
             st.markdown("<div class='glass-card'><h3>Recommendation System</h3>", unsafe_allow_html=True)
             for rec in recs:
@@ -521,7 +521,7 @@ def prediction_page(df: pd.DataFrame, metadata: dict[str, Any]) -> None:
     else:
         with right:
             st.info("Submit the form to generate a prediction, confidence score, and recommendation report.")
-            st.dataframe(defaults.describe().T, width="stretch")
+            st.dataframe(defaults.describe().T, use_container_width=True)
 
 
 def analytics_dashboard(df: pd.DataFrame) -> None:
@@ -535,7 +535,7 @@ def analytics_dashboard(df: pd.DataFrame) -> None:
     c1, c2 = st.columns(2)
     with c1:
         fig = px.histogram(df, x=TARGET, nbins=35, marginal="box", title="Calories Distribution", color_discrete_sequence=["#ff5c35"])
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
     with c2:
         fig = px.scatter(
             df,
@@ -547,16 +547,16 @@ def analytics_dashboard(df: pd.DataFrame) -> None:
             color_continuous_scale="Turbo",
             title="Duration vs Calories",
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
     c3, c4 = st.columns(2)
     with c3:
         gender_summary = df.groupby("Gender", as_index=False)[TARGET].mean()
         fig = px.bar(gender_summary, x="Gender", y=TARGET, color="Gender", title="Average Calories by Gender", color_discrete_sequence=["#0ea5e9", "#ff5c35"])
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
     with c4:
         fig = px.pie(df, names="Gender", hole=0.55, title="Gender Mix", color_discrete_sequence=["#0ea5e9", "#ff5c35"])
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
     corr_df = df.drop(columns=ID_COLUMNS, errors="ignore").copy()
     corr_df["Gender"] = corr_df["Gender"].map(GENDER_MAP)
@@ -567,12 +567,12 @@ def analytics_dashboard(df: pd.DataFrame) -> None:
         color_continuous_scale="RdBu_r",
         title="Correlation Heatmap",
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
     df_line = df.sort_values("Duration").groupby("Duration", as_index=False)[TARGET].mean()
     fig = px.line(df_line, x="Duration", y=TARGET, markers=True, title="Average Calories Trend by Exercise Duration")
     fig.update_traces(line_color="#ff5c35")
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def data_insights(df: pd.DataFrame) -> None:
@@ -585,12 +585,12 @@ def data_insights(df: pd.DataFrame) -> None:
 
     tab1, tab2, tab3, tab4 = st.tabs(["Data Preview", "Schema", "Statistical Summary", "Outliers"])
     with tab1:
-        st.dataframe(df.head(50), width="stretch")
+        st.dataframe(df.head(50), use_container_width=True)
     with tab2:
         schema = pd.DataFrame({"Column": df.columns, "Data Type": df.dtypes.astype(str), "Missing": df.isna().sum().values})
-        st.dataframe(schema, width="stretch")
+        st.dataframe(schema, use_container_width=True)
     with tab3:
-        st.dataframe(df.describe(include="all").T, width="stretch")
+        st.dataframe(df.describe(include="all").T, use_container_width=True)
     with tab4:
         numeric = df.select_dtypes(include=np.number).drop(columns=ID_COLUMNS, errors="ignore")
         outlier_rows = []
@@ -603,9 +603,9 @@ def data_insights(df: pd.DataFrame) -> None:
             count = int(((numeric[col] < lower) | (numeric[col] > upper)).sum())
             outlier_rows.append({"Feature": col, "Lower Bound": lower, "Upper Bound": upper, "Outliers": count})
         outliers = pd.DataFrame(outlier_rows)
-        st.dataframe(outliers, width="stretch")
+        st.dataframe(outliers, use_container_width=True)
         fig = px.bar(outliers, x="Feature", y="Outliers", title="IQR Outlier Count by Feature", color="Outliers", color_continuous_scale="Oranges")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
 
 def model_performance(metadata: dict[str, Any]) -> None:
@@ -632,16 +632,16 @@ def model_performance(metadata: dict[str, Any]) -> None:
         min_v = min(float(np.min(y_test)), float(np.min(y_pred)))
         max_v = max(float(np.max(y_test)), float(np.max(y_pred)))
         fig.add_trace(go.Scatter(x=[min_v, max_v], y=[min_v, max_v], mode="lines", name="Ideal", line=dict(color="#ef4444", dash="dash")))
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
     with c6:
         fig = px.histogram(x=residuals, nbins=35, title="Residual Distribution", labels={"x": "Residual"})
         fig.update_traces(marker_color="#0ea5e9")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
     importance = metadata["feature_importance"]
     fig = px.bar(importance, x="Importance", y="Feature", orientation="h", title="Feature Importance", color="Importance", color_continuous_scale="Oranges")
     fig.update_layout(yaxis={"categoryorder": "total ascending"})
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def about_project(df: pd.DataFrame, metadata: dict[str, Any]) -> None:
@@ -690,7 +690,7 @@ def about_project(df: pd.DataFrame, metadata: dict[str, Any]) -> None:
                 "Status": ["Generated", "Generated", "Generated", "Bundled", "Bundled", "Bundled"],
             }
         ),
-        width="stretch",
+        use_container_width=True,
     )
 
 
